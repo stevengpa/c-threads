@@ -1,5 +1,9 @@
 #include "../inc/threadpool.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+
 void* thread_function(void* threadpool) {
     threadpool_t *pool = (threadpool_t *)threadpool;
 
@@ -54,15 +58,25 @@ void threadpool_destroy(threadpool_t* pool) {
 }
 
 void threadpool_add_task(threadpool_t* pool, void (*function)(void*), void* arg) {
-    task_t task;
-    task.arg = arg;
-    task.fn = function;
-
     pthread_mutex_lock(&(pool->lock));
-    pool->task_queue[pool->queued] = task;
-    pool->queued++;
+
+    int next_rear = (pool->queue_back + 1) % QUEUE_SIZE;
+    if (pool->queued < QUEUE_SIZE) {
+        pool->task_queue[pool->queue_back].fn = function;
+        pool->task_queue[pool->queue_back].arg = arg;
+        pool->queue_back = next_rear;
+        pool->queued++;
+        pthread_cond_signal(&(pool->notify));
+    } else {
+        printf("Task queue is full! Cannot add more tasks.\n");
+    }
+
     pthread_mutex_unlock(&(pool->lock));
 }
 
 void example_task(void* arg) {
+    int* num = (int*)arg;
+    printf("Processing task %d\n", *num);
+    sleep(1);  // Simulate task work
+    free(arg);
 }

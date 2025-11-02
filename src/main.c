@@ -1,10 +1,21 @@
 #include "../inc/threadpool.h"
 
-int main(int argc, char **argv) {
-    // threadpool_t *threadpool = NULL;
+#include <stdlib.h>
+#include <unistd.h>
 
-    // threadpool_init(threadpool);
-    // threadpool_add_task(threadpool, example_task, NULL);
-    // threadpool_destroy(threadpool);
+int main(int argc, char **argv) {
+    threadpool_t pool;
+    threadpool_init(&pool);
+
+    for (int i = 0; i < 100; i++) {
+        int *task_num = malloc(sizeof(int));
+        *task_num = i;
+        threadpool_add_task(&pool, example_task, task_num);
+    }
+
+    sleep(5);
+
+    threadpool_destroy(&pool);
+
     return 0;
 }
