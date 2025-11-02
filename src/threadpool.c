@@ -1,26 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <unistd.h>
-
-#define THREADS 8
-#define QUEUE_SIZE 100
-
-typedef struct {
-    void (*fn)(void* arg);
-    void *arg;
-} task_t;
-
-typedef struct {
-    pthread_mutex_t lock;
-    pthread_cond_t notify;
-    pthread_t threads[THREADS];
-    task_t task_queue[QUEUE_SIZE];
-    int queued;
-    int queue_front;
-    int queue_back;
-    int stop;
-} threadpool_t;
+#include "../inc/threadpool.h"
 
 void* thread_function(void* threadpool) {
     threadpool_t *pool = (threadpool_t *)threadpool;
@@ -47,7 +25,7 @@ void* thread_function(void* threadpool) {
     return NULL;
 }
 
-void threadpool_init(threadpool_t *pool) {
+void threadpool_init(threadpool_t* pool) {
     pool->queued = 0;
     pool->queue_front = 0;
     pool->queue_back = 0;
@@ -61,6 +39,20 @@ void threadpool_init(threadpool_t *pool) {
     }
 }
 
-int main(int argc, char **argv) {
-    return 0;
+void threadpool_destroy(threadpool_t* pool) {
+
+}
+
+void threadpool_add_task(threadpool_t* pool, void (*function)(void*), void* arg) {
+    task_t task;
+    task.arg = arg;
+    task.fn = function;
+
+    pthread_mutex_lock(&(pool->lock));
+    pool->task_queue[pool->queued] = task;
+    pool->queued++;
+    pthread_mutex_unlock(&(pool->lock));
+}
+
+void example_task(void* arg) {
 }

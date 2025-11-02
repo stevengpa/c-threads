@@ -3,4 +3,7 @@ project(c_threads C)
 
 set(CMAKE_C_STANDARD 23)
 
-add_executable(c_threads main.c)
+include_directories(inc/)
+
+add_executable(c_threads main.c
+        src/threadpool.c)
